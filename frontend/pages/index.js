@@ -7,6 +7,7 @@ import { fetchAPI } from "../lib/api"
 const Home = ({ articles, categories, homepage }) => {
   return (
     <Layout categories={categories}>
+      
       <Seo seo={homepage.attributes.seo} />
       <div className="uk-section">
         <div className="uk-container uk-container-large">
@@ -14,7 +15,9 @@ const Home = ({ articles, categories, homepage }) => {
           <Articles articles={articles} />
         </div>
       </div>
+      
     </Layout>
+
   )
 }
 
