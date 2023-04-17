@@ -46,18 +46,22 @@ h1 {
 /* .uk-container-small {
   max-width: 990px;
 } */
-.uk-simalar-post{
+.uk-simalar-post,
+.uk-recent-post{
   display: flex;
+  margin: 20px;
 }
-.uk-simalar-post-content {
+.uk-simalar-post-content,
+.uk-recent-post-content {
   margin-left: 10px;
 }
-.uk-simalar-post-content h4 {
+.uk-simalar-post-content h4,
+.uk-recent-post-content h4 {
   margin: 0 0 10px 0;
 }
-.uk-simalar-post-media a img {
+.uk-simalar-post-media a img,
+.uk-recent-post-media a img {
   height: 90px;
-  object-fit: fill;
 }
 
 img:hover {
@@ -67,7 +71,7 @@ img:hover {
 .uk-navbar-pagination-left,
 .uk-navbar-pagination-right{
   width: 18vw;
-  height: 8vh;
+  height: auto;
   box-shadow: 0 0 0 2px;
   border-radius: 3px;
   margin: 5rem 0 5rem 0;
@@ -138,6 +142,11 @@ img:hover {
   border: 0;
   border-top: 1px solid #e5e5e5;
 }
+ol, ul {
+  padding-left: 0px;
+}
+
+
 @media only screen and (max-width: 768px) {
   .row {
     display: grid;

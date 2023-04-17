@@ -3,6 +3,7 @@ import ReactMarkdown from "react-markdown";
 
 import Seo from "../../components/seo";
 import Layout from "../../components/layout";
+import { useState, useEffect } from "react";
 
 import { fetchAPI } from "../../lib/api";
 import { getStrapiMedia } from "../../lib/media";
@@ -18,10 +19,31 @@ const Article = ({ article, categories, articles }) => {
   const index = articles.findIndex((a) => a.attributes.slug === slug)
   const prevArticle = articles[(index - 1 + articles.length) % articles.length]
   const nextArticle = articles[(index + 1) % articles.length]
-
-  const relatedArticles = articles.slice(0, 4);
-
+  
   const urlStrapi = "http://localhost:1337"
+  const sortByDate = articles.sort((a, b) => {
+    const beforeDate = a.attributes.createdAt;
+    const afterDate = b.attributes.createdAt;
+
+    return (afterDate - beforeDate ? 1 : -1)
+  }) 
+
+  const recentArticles = articles.slice(0, 4)
+
+
+  const [relatedArticles, setRelatedArticles] = useState([]);
+  
+
+  useEffect(() => {
+      async function fetchRelatedArticles() {
+        // const res = await fetch(`http://localhost:1337/api/articles?populate[relatedArticle][populate]=data&populate[relatedArticle][populate]=image`);
+        const res = await fetch(`http://localhost:1337/api/articles?populate[relatedArticle][populate]=*`);
+        const relatedData = await res.json();
+        setRelatedArticles(relatedData);
+        
+    }
+    fetchRelatedArticles();
+  }, [article.id]);
   
   const seo = {
     metaTitle: article.attributes.title,
@@ -55,7 +77,7 @@ const Article = ({ article, categories, articles }) => {
                 <hr className="uk-divider" />
                   <div className="uk-grid-small uk-flex-left" data-uk-grid="true">
                     <div>
-                      {article.attributes.author.data.attributes.picture && (
+                      {article.attributes.author.data.attributes.picture && (                        
                         <img
                           src={getStrapiMedia(
                             article.attributes.author.data.attributes.picture
@@ -82,7 +104,7 @@ const Article = ({ article, categories, articles }) => {
                         </Moment>
                       </p>
                     </div>                                 
-
+             
                   </div>
               </div>
             </div>          
@@ -102,36 +124,80 @@ const Article = ({ article, categories, articles }) => {
                 </div>                   
               </div>
             </nav>
-
-          {/********    Sidebar    *********/}
-          
+                
         </div>
+        
+        {/********    Sidebar    *********/}
         <div className ="sidebar">
           <div className="content-sidebar">
             <div className ="col-lg-12">
               <div className ="sidebar-item recent-posts">
                 <div className ="sidebar-heading">
-                  <h2>Recent Posts</h2>
-                </div>
-                <div className ="content">           
-                  {relatedArticles?.map((article) => (
+                  <h2>Related Posts</h2>
+                </div>                
+                <div className ="content">
+                          
+                        {relatedArticles?.data?.map(relatedarticle =>(
+                          
+                          relatedarticle.attributes.relatedArticle.data.length > 0 && 
+                          relatedarticle.attributes.relatedArticle.data.map((article =>(
+                          article.attributes.article.data.attributes.slug === slug &&
+                            <>           
+                              <div className="uk-simalar-post" key={article.id}>
+                                  <div className="uk-simalar-post-media">                                                                    
+                                    <Link href={article.attributes.slug}>  
+                                      <Image id="banner_slider" 
+                                          src={ urlStrapi + article.attributes.image.data.attributes.url } width={100} height={150}
+                                          alt={ article.attributes.title } />                                        
+                                    </Link>                    
+                                </div>
+                                
+                                <div className="uk-simalar-post-content">
+                                  <Link href={`/article/${article.attributes.slug}`} >
+                                    <h4>{article.attributes.title}</h4>
+                                  </Link>
+                                  <span className="uk-text-meta uk-margin-remove-top">
+                                      <Moment format="MMM Do YYYY">
+                                        {article.attributes.createdAt}
+                                      </Moment>
+                                  </span>
+                                </div>  
+                              </div> 
+                              <hr className="uk-divider-article" />     
+                            </>
+                          )))              
+                        ))}
+                      
+
+              </div>
+            </div>
+          </div>  
+
+          <div className ="col-lg-12">
+            <div className ="sidebar-item categories">
+              <div className ="sidebar-heading">
+                <h2>Recent Posts</h2>
+              </div>
+              <div className ="content">           
+                  {recentArticles.map((article) => (
                     <>
-                      <li className="uk-simalar-post" key={article.id}>
-                        <div className="uk-simalar-post-media">
+                      <li className="uk-recent-post" key={article.id}>
+
+                        <div className="uk-recent-post-media">
                           <Link href={article.attributes.slug}>
                             <Image id="banner_slider" 
                                   src={ urlStrapi + article.attributes.image.data.attributes.url } 
-                                  alt={ article.attributes.title } width={100} height={150}
-                            />                        
+                                  alt={ article.attributes.title } width={100} height={150} />                        
                           </Link>
                         </div>
-                        <div className="uk-simalar-post-content">
-                          <Link href={`/articles/${article.attributes.slug}`} >
+
+                        <div className="uk-recent-post-content">
+                          <Link href={`/article/${article.attributes.slug}`} >
                             <h4>{article.attributes.title}</h4>
                           </Link>
                           <span className="uk-text-meta uk-margin-remove-top">
                               <Moment format="MMM Do YYYY">
-                                {article.attributes.publishedAt}
+                                {article.attributes.createdAt}
                               </Moment>
                           </span>
                         </div>
@@ -141,27 +207,6 @@ const Article = ({ article, categories, articles }) => {
                   ))}      
                   
                 </div>
-              </div>
-            </div>       
-          <div className ="col-lg-12">
-            <div className ="sidebar-item categories">
-              <div className ="sidebar-heading">
-                <h2>Categories</h2>
-              </div>
-              <div className ="content">
-                <ul>
-                  {categories?.data?.map((category) => (
-                    <>
-                      <li key={category.id}>
-                        <Link href={`/category/${category.attributes.slug}`} >
-                        {category.attributes.name}
-                        </Link>
-                      </li>
-                      <hr className="uk-divider-categorie" />
-                    </> 
-                  ))}            
-                </ul>
-              </div>
             </div>
           </div> 
           </div>   
@@ -194,6 +239,7 @@ export async function getStaticProps({ params }) {
     populate: ["image", "category", "author.picture"],
   });
   const categoriesRes = await fetchAPI("/categories");
+  
 
   return {
     props: { 
